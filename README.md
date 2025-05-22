@@ -31,10 +31,10 @@ python src/monitoring/main.py --config config.yaml
 python src/orchestrator/optimizer.py --mode train  # or --mode run
 ```
 ### Deploy as Microservices
-```
+``` 
 docker-compose -f deploy/docker-compose.yml up --build
 ```
 ## Contact
-Mateus Gomes
+- Mateus Gomes
 [GitHub](https://github.com/mateusgomes6)
 [Email](mateusgomesdc@hotmail.com)
