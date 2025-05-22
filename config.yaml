@@ -1,0 +1,15 @@
+monitoring:
+  kafka_brokers: ["kafka1:9092", "kafka2:9092"]
+  prometheus_port: 9090
+
+docker:
+  api_version: "1.41"
+  max_containers: 50
+
+kubernetes:
+  enabled: false
+  config_path: "~/.kube/config"
+
+models:
+  monitoring_checkpoint: "models/monitoring.h5"
+  retrain_interval: "24h"
