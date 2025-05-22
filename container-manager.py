@@ -1,4 +1,5 @@
 import numpy as np
+import random
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.layers import Dense, Input, concatenate
@@ -44,3 +45,32 @@ class ContainerOrchestrator:
             self.rebalance_pods()
         elif action == 4:
             self.perform_maintenance()
+
+    def train(self, episodes=1000):
+        for e in range(episodes):
+            state = self.get_cluster_state()
+            value, policy = self.model.predict(state.reshape(1, -1))
+            action = np.random.choice(5, p=policy[0])
+            
+            self.take_action(action)
+            next_state = self.get_cluster_state()
+            reward = self.calculate_reward(state, next_state)
+            
+            self.memory.append((state, action, reward, next_state))
+            self.replay()
+    
+    def replay(self, batch_size=32):
+        if len(self.memory) < batch_size:
+            return
+            
+        minibatch = random.sample(self.memory, batch_size)
+        states = np.array([x[0] for x in minibatch])
+        actions = np.array([x[1] for x in minibatch])
+        rewards = np.array([x[2] for x in minibatch])
+        next_states = np.array([x[3] for x in minibatch])
+        
+        values, policies = self.model.predict(states)
+        next_values, _ = self.model.predict(next_states)
+        
+        targets = rewards + 0.95 * next_values
+        self.model.fit(states, [targets, policies], verbose=0)
