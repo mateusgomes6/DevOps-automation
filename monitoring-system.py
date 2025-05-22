@@ -1,23 +1,18 @@
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras import layers, models
+from tensorflow.keras.layers import LSTM, Attention
 import prometheus_client
-from aiokafka import AIOKafkaConsumer
+from prometheus_client import start_http_server
 import json
+from aiokafka import AIOKafkaConsumer
 
-# Paths for submodules
-server = prometheus_client.start_http_server
 keras = tf.keras
-layers = tf.keras.layers
-models = tf.keras.models
-
-# Paths for specific classes
-LSTM = layers.LSTM 
-Attention = layers.Attention
 
 class AdvancedMonitoring:
     def __init__(self):
         self.model = self.build_advanced_model()
-        self.metrics_server = server(8000)
+        self.metrics_server = start_http_server(8000)
         self.setup_custom_metrics()
 
     def build_advanced_model(self):
