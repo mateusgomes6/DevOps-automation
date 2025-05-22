@@ -1,3 +1,4 @@
+import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import Model
 
@@ -21,3 +22,27 @@ class SelfHealingSystem:
         
         return Model(inputs=[node_features, edge_features, adjacency],
                     outputs=outputs)
+    
+    def diagnose_issue(self, incident):
+        service_graph = self.build_service_graph(incident)
+        
+        solution = self.gnn_model.predict(service_graph)
+        
+        if solution[0] > 0.7:
+            self.execute_remediation(incident, solution)
+        else:
+            self.escalate_to_human(incident)
+            
+    def execute_remediation(self, incident, solution):
+        if np.argmax(solution) == 0:
+            self.restart_service(incident.service)
+        elif np.argmax(solution) == 1:
+            self.rollback_deployment(incident.deployment)
+        elif np.argmax(solution) == 2:
+            self.scale_resource(incident.resource)
+            
+        self.record_outcome(incident, solution, success=True)
+    
+    def learn_from_incidents(self):
+        graph_data = self.prepare_training_data()
+        self.gnn_model.fit(graph_data, epochs=10)
