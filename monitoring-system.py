@@ -1,5 +1,8 @@
+import numpy as np
 import tensorflow as tf
 import prometheus_client
+from aiokafka import AIOKafkaConsumer
+import json
 
 # Paths for submodules
 server = prometheus_client.start_http_server
@@ -37,3 +40,30 @@ class AdvancedMonitoring:
         self.mem_prediction = prometheus_client.Gauge(
             'mem_anomaly_score', 'Prediction score for Memory anomalies'
         )
+    
+    def create_sequences(self, data, seq_length):
+        sequences = []
+        for i in range(len(data) - seq_length):
+            sequences.append(data[i:i+seq_length])
+        return np.array(sequences)
+    
+    async def stream_metrics(self):
+        consumer = AIOKafkaConsumer(
+            'server-metrics',
+            bootstrap_servers='kafka:9092',
+            value_deserializer=lambda v: json.loads(v.decode('utf-8')))
+        
+        await consumer.start()
+        buffer = []
+        
+        try:
+            async for msg in consumer:
+                metrics = msg.value
+                buffer.append(metrics)
+                if len(buffer) >= 60:
+                    sequence = self.create_sequences(buffer, 60)
+                    prediction = self.model.predict(sequence)
+                    self.analyze_prediction(prediction, buffer[-1])
+                    buffer = buffer[-30:] 
+        finally:
+            await consumer.stop()
