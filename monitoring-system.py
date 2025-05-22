@@ -67,3 +67,10 @@ class AdvancedMonitoring:
                     buffer = buffer[-30:] 
         finally:
             await consumer.stop()
+
+    def analyze_prediction(self, prediction, latest_metrics):
+        self.cpu_prediction.set(prediction[0][2]) 
+        self.mem_prediction.set(prediction[0][2])
+        
+        if prediction[0][2] > 0.95:
+            self.trigger_incident(latest_metrics)
